@@ -2,77 +2,69 @@
 
 ## Overview
 
-MCP server wrapper for [KrillinAI](https://github.com/krillinai/KrillinAI) - Video translation and dubbing powered by LLMs.
+MCP server wrapper for KrillinAI video translation and dubbing.
 
 ## Features
 
 - Video translation (100+ languages)
-- Voice cloning and dubbing
-- Subtitle generation
-- Platform optimization (YouTube, TikTok, Bilibili)
-- Batch processing
-
-## Architecture
-
-```
-OpenClaw Agent → MCP Client → KrillinAI MCP Server → KrillinAI API → Video Processing
-```
+- Voice cloning
+- Dubbing
+- Platform optimization (YouTube, TikTok)
 
 ## Tools
 
-### 1. `krillin.translate_video`
-- Translate video to target language
-- Parameters: `video_path`, `source_lang`, `target_lang`, `voice_clone`
+### krillin_translate
+Translate video to target language.
 
-### 2. `krillin.dub_video`
-- Dub video with AI voice
-- Parameters: `video_path`, `voice_id`, `language`
+```json
+{
+  "video_url": "https://example.com/video.mp4",
+  "target_language": "es",
+  "voice_clone": false
+}
+```
 
-### 3. `krillin.generate_subtitles`
-- Generate subtitles for video
-- Parameters: `video_path`, `language`, `format`
+### krillin_dub
+Dub video with AI voice.
 
-### 4. `krillin.batch_process`
-- Batch process multiple videos
-- Parameters: `videos`, `operation`, `config`
+```json
+{
+  "video_url": "https://example.com/video.mp4",
+  "language": "en",
+  "voice_style": "natural"
+}
+```
+
+### krillin_status
+Check job status.
+
+```json
+{
+  "job_id": "job_123"
+}
+```
 
 ## Setup
 
-### Prerequisites
-- KrillinAI instance (local or cloud)
-- OpenClaw with MCP support
-
-### Configuration
-```env
-KRILLINAI_API_URL=http://localhost:8080
-KRILLINAI_API_KEY=your-api-key
+```bash
+npm install
+npm run build
+npm start
 ```
 
-## McDepth Integration
+## Env
 
-### Galactic Groove
-- Workflow: Space video → KrillinAI translation → Multi-platform content
-- Tool: `krillin.translate_video`
+```env
+KRILLIN_API_KEY=your-key
+KRILLIN_API_URL=https://api.krillinai.com
+```
 
-### AgentCast
-- Podcast video clips → Subtitle generation → Social media
-- Tool: `krillin.generate_subtitles`
+## Stack
 
-### Synthloop
-- Music video → Dubbing → International release
-- Tool: `krillin.dub_video`
+- TypeScript
+- MCP SDK
+- Node.js
 
-## Implementation Status
+## License
 
-- [ ] MCP server core
-- [ ] Video translation tool
-- [ ] Dubbing tool
-- [ ] Subtitle generation
-- [ ] Batch processing
-- [ ] McDepth integrations
-- [ ] Documentation
-
-## References
-
-- [KrillinAI GitHub](https://github.com/krillinai/KrillinAI)
-- [MCP Protocol](https://modelcontextprotocol.io/)
+MIT

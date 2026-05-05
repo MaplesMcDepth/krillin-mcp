@@ -1,11 +1,11 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, } from '@modelcontextprotocol/sdk/types.js';
-export class KrillinMcpServer {
+export class KrillinServer {
     server;
-    config;
-    constructor(config) {
-        this.config = config;
+    apiKey;
+    constructor(apiKey) {
+        this.apiKey = apiKey;
         this.server = new Server({ name: 'krillin-mcp', version: '1.0.0' }, { capabilities: { tools: {} } });
         this.setupHandlers();
     }
@@ -21,143 +21,102 @@ export class KrillinMcpServer {
     getTools() {
         return [
             {
-                name: 'krillin_translate_video',
-                description: 'Translate video to target language with AI dubbing',
+                name: 'krillin_translate',
+                description: 'Translate video to target language',
                 inputSchema: {
                     type: 'object',
                     properties: {
-                        video_path: { type: 'string', description: 'Path to video file' },
-                        source_lang: { type: 'string', description: 'Source language code' },
-                        target_lang: { type: 'string', description: 'Target language code' },
-                        voice_clone: { type: 'boolean', description: 'Clone original voice' },
-                        platform: { type: 'string', description: 'Target platform (youtube, tiktok, bilibili)' }
+                        video_url: { type: 'string', description: 'Video URL' },
+                        target_language: { type: 'string', description: 'Target language code' },
+                        voice_clone: { type: 'boolean', description: 'Clone original voice' }
                     },
-                    required: ['video_path', 'target_lang']
+                    required: ['video_url', 'target_language']
                 }
             },
             {
-                name: 'krillin_generate_subtitles',
-                description: 'Generate subtitles for video',
-                inputSchema: {
-                    type: 'object',
-                    properties: {
-                        video_path: { type: 'string', description: 'Path to video file' },
-                        language: { type: 'string', description: 'Subtitle language' },
-                        format: { type: 'string', description: 'Subtitle format (srt, vtt, ass)' }
-                    },
-                    required: ['video_path', 'language']
-                }
-            },
-            {
-                name: 'krillin_dub_video',
+                name: 'krillin_dub',
                 description: 'Dub video with AI voice',
                 inputSchema: {
                     type: 'object',
                     properties: {
-                        video_path: { type: 'string', description: 'Path to video file' },
-                        voice_id: { type: 'string', description: 'Voice ID or sample path' },
-                        language: { type: 'string', description: 'Target language' }
+                        video_url: { type: 'string', description: 'Video URL' },
+                        language: { type: 'string', description: 'Language code' },
+                        voice_style: { type: 'string', description: 'Voice style' }
                     },
-                    required: ['video_path', 'language']
+                    required: ['video_url', 'language']
                 }
             },
             {
-                name: 'krillin_batch_process',
-                description: 'Batch process multiple videos',
+                name: 'krillin_status',
+                description: 'Check job status',
                 inputSchema: {
                     type: 'object',
                     properties: {
-                        videos: { type: 'array', description: 'List of video paths' },
-                        operation: { type: 'string', description: 'Operation type (translate, dub, subtitle)' },
-                        config: { type: 'object', description: 'Operation configuration' }
+                        job_id: { type: 'string', description: 'Job ID' }
                     },
-                    required: ['videos', 'operation']
+                    required: ['job_id']
                 }
             }
         ];
     }
     async handleToolCall(name, args) {
         switch (name) {
-            case 'krillin_translate_video':
-                return this.translateVideo(args);
-            case 'krillin_generate_subtitles':
-                return this.generateSubtitles(args);
-            case 'krillin_dub_video':
-                return this.dubVideo(args);
-            case 'krillin_batch_process':
-                return this.batchProcess(args);
+            case 'krillin_translate':
+                return this.translate(args);
+            case 'krillin_dub':
+                return this.dub(args);
+            case 'krillin_status':
+                return this.status(args);
             default:
                 throw new Error(`Unknown tool: ${name}`);
         }
     }
-    async translateVideo(args) {
-        // Simulate API call to KrillinAI
-        const { video_path, target_lang, voice_clone } = args;
+    async translate(args) {
+        const { video_url, target_language, voice_clone } = args;
         return {
-            content: [{ type: 'text', text: `Translating ${video_path} to ${target_lang}...` }],
+            content: [{ type: 'text', text: `Translating ${video_url} to ${target_language}` }],
             result: {
-                job_id: `trans_${Date.now()}`,
+                job_id: `job_${Date.now()}`,
                 status: 'queued',
-                estimated_time: '5 minutes',
-                output_path: `/output/translated_${target_lang}_${video_path}`,
-                voice_cloned: voice_clone || false
+                video_url,
+                target_language,
+                voice_clone: voice_clone || false
             }
         };
     }
-    async generateSubtitles(args) {
-        const { video_path, language, format } = args;
+    async dub(args) {
+        const { video_url, language, voice_style } = args;
         return {
-            content: [{ type: 'text', text: `Generating ${language} subtitles for ${video_path}...` }],
+            content: [{ type: 'text', text: `Dubbing ${video_url} in ${language}` }],
             result: {
-                job_id: `sub_${Date.now()}`,
+                job_id: `job_${Date.now()}`,
                 status: 'queued',
-                subtitle_path: `/output/subtitles_${language}.${format || 'srt'}`,
-                format: format || 'srt'
+                video_url,
+                language,
+                voice_style: voice_style || 'natural'
             }
         };
     }
-    async dubVideo(args) {
-        const { video_path, voice_id, language } = args;
+    async status(args) {
+        const { job_id } = args;
         return {
-            content: [{ type: 'text', text: `Dubbing ${video_path} in ${language}...` }],
+            content: [{ type: 'text', text: `Job ${job_id} status` }],
             result: {
-                job_id: `dub_${Date.now()}`,
-                status: 'queued',
-                voice_id: voice_id || 'default',
-                output_path: `/output/dubbed_${language}_${video_path}`
-            }
-        };
-    }
-    async batchProcess(args) {
-        const { videos, operation, config } = args;
-        const jobs = videos.map((video) => ({
-            video,
-            job_id: `${operation}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            status: 'queued'
-        }));
-        return {
-            content: [{ type: 'text', text: `Batch ${operation} for ${videos.length} videos queued` }],
-            result: {
-                batch_id: `batch_${Date.now()}`,
-                operation,
-                jobs,
-                config: config || {}
+                job_id,
+                status: 'processing',
+                progress: 50
             }
         };
     }
     async start() {
         const transport = new StdioServerTransport();
         await this.server.connect(transport);
-        console.error('KrillinAI MCP server running on stdio');
+        console.error('KrillinAI MCP server running');
     }
 }
-// CLI entry point
 async function main() {
-    const config = {
-        apiUrl: process.env.KRILLINAI_API_URL || 'http://localhost:8080',
-        apiKey: process.env.KRILLINAI_API_KEY
-    };
-    const server = new KrillinMcpServer(config);
+    const apiKey = process.env.KRILLIN_API_KEY || '';
+    const server = new KrillinServer(apiKey);
     await server.start();
 }
 main().catch(console.error);

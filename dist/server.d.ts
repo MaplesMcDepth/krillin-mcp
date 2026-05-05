@@ -1,17 +1,12 @@
-export interface KrillinConfig {
-    apiUrl: string;
-    apiKey?: string;
-}
-export declare class KrillinMcpServer {
+export declare class KrillinServer {
     private server;
-    private config;
-    constructor(config: KrillinConfig);
+    private apiKey;
+    constructor(apiKey: string);
     private setupHandlers;
     private getTools;
     private handleToolCall;
-    private translateVideo;
-    private generateSubtitles;
-    private dubVideo;
-    private batchProcess;
+    private translate;
+    private dub;
+    private status;
     start(): Promise<void>;
 }

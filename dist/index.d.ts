@@ -1,1 +1,1 @@
-export { KrillinMcpServer } from './server.js';
+export { KrillinServer } from './server.js';
