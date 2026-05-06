@@ -6,7 +6,7 @@ export class KrillinServer {
     apiKey;
     constructor(apiKey) {
         this.apiKey = apiKey;
-        this.server = new Server({ name: 'krillin-mcp', version: '1.0.0' }, { capabilities: { tools: {} } });
+        this.server = new Server({ name: 'krillin-mcp', version: '1.1.0' }, { capabilities: { tools: {} } });
         this.setupHandlers();
     }
     setupHandlers() {
@@ -47,6 +47,30 @@ export class KrillinServer {
                 }
             },
             {
+                name: 'krillin_batch_translate',
+                description: 'Batch translate multiple videos',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        videos: { type: 'array', description: 'Array of {video_url, target_language}' },
+                        voice_clone: { type: 'boolean', description: 'Clone original voice' }
+                    },
+                    required: ['videos']
+                }
+            },
+            {
+                name: 'krillin_batch_dub',
+                description: 'Batch dub multiple videos',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        videos: { type: 'array', description: 'Array of {video_url, language}' },
+                        voice_style: { type: 'string', description: 'Voice style' }
+                    },
+                    required: ['videos']
+                }
+            },
+            {
                 name: 'krillin_status',
                 description: 'Check job status',
                 inputSchema: {
@@ -65,6 +89,10 @@ export class KrillinServer {
                 return this.translate(args);
             case 'krillin_dub':
                 return this.dub(args);
+            case 'krillin_batch_translate':
+                return this.batchTranslate(args);
+            case 'krillin_batch_dub':
+                return this.batchDub(args);
             case 'krillin_status':
                 return this.status(args);
             default:
@@ -95,6 +123,40 @@ export class KrillinServer {
                 language,
                 voice_style: voice_style || 'natural'
             }
+        };
+    }
+    async batchTranslate(args) {
+        const { videos, voice_clone } = args;
+        const jobs = [];
+        for (const video of videos) {
+            jobs.push({
+                job_id: `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                status: 'queued',
+                video_url: video.video_url,
+                target_language: video.target_language,
+                voice_clone: voice_clone || false
+            });
+        }
+        return {
+            content: [{ type: 'text', text: `Batch translating ${videos.length} videos` }],
+            result: { jobs, count: videos.length }
+        };
+    }
+    async batchDub(args) {
+        const { videos, voice_style } = args;
+        const jobs = [];
+        for (const video of videos) {
+            jobs.push({
+                job_id: `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                status: 'queued',
+                video_url: video.video_url,
+                language: video.language,
+                voice_style: voice_style || 'natural'
+            });
+        }
+        return {
+            content: [{ type: 'text', text: `Batch dubbing ${videos.length} videos` }],
+            result: { jobs, count: videos.length }
         };
     }
     async status(args) {

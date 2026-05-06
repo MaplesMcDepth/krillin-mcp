@@ -7,6 +7,8 @@ export declare class KrillinServer {
     private handleToolCall;
     private translate;
     private dub;
+    private batchTranslate;
+    private batchDub;
     private status;
     start(): Promise<void>;
 }
